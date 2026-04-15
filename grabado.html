@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grabado</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111009;color:#e2d0b0;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+
+header{
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(210,175,100,0.15);
+  background:rgba(0,0,0,0.4);
+  flex-wrap:wrap;gap:8px;
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(6px);
+}
+.logo{font-family:'Cinzel',serif;font-size:17px;font-weight:700;letter-spacing:.2em;color:#c9a84c;flex-shrink:0}
+.logo span{color:rgba(201,168,76,.45);font-weight:400}
+
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.btn{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:#d4c09a;
+  padding:5px 13px;border-radius:6px;
+  cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;
+  transition:all .15s;white-space:nowrap;
+}
+.btn:hover{background:rgba(201,168,76,.18);border-color:rgba(201,168,76,.4)}
+.btn.active{background:rgba(201,168,76,.22);border-color:#c9a84c;color:#c9a84c}
+
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 16px 8px;gap:14px}
+
+.canvas-wrapper{
+  position:relative;
+  border-radius:3px;
+  overflow:hidden;
+  box-shadow:0 4px 40px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.04);
+  max-width:820px;width:100%;
+  cursor:crosshair;
+}
+#photo-bg{display:block;width:100%;height:auto;user-select:none;pointer-events:none;min-height:200px;background:#2a2318}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+#cg{mix-blend-mode:multiply}
+#ch{mix-blend-mode:screen}
+#text-inp{
+  position:absolute;display:none;
+  background:transparent;border:none;
+  border-bottom:1.5px solid #c9a84c;
+  color:transparent;caret-color:#c9a84c;
+  font-family:'Cinzel',serif;font-weight:700;
+  outline:none;min-width:120px;padding:2px;
+  z-index:10;
+}
+
+.controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+.ctrl{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(210,175,100,.6)}
+.ctrl label{white-space:nowrap}
+input[type=range]{
+  -webkit-appearance:none;width:90px;height:2px;
+  background:rgba(255,255,255,.18);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;
+  border-radius:50%;background:#c9a84c;cursor:pointer;
+}
+.val{color:#c9a84c;font-size:12px;min-width:20px;text-align:right}
+
+.photo-strip{display:flex;gap:10px;padding:0 16px 18px;justify-content:center;flex-wrap:wrap}
+.mat{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.mat img{
+  width:68px;height:46px;border-radius:3px;object-fit:cover;
+  border:2px solid transparent;opacity:.6;
+  transition:all .2s;
+}
+.mat img:hover{opacity:.9}
+.mat img.active{border-color:#c9a84c;opacity:1;box-shadow:0 0 10px rgba(201,168,76,.35)}
+.mat-name{font-size:10px;color:rgba(210,175,100,.45);font-family:'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase}
+
+#font-ctrl{display:none}
+.tip{font-size:11px;color:rgba(210,175,100,.35);text-align:center;padding:0 0 4px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✦ GRABADO <span>art</span></div>
+  <div class="toolbar">
+    <button class="btn active" id="bdraw" onclick="setTool('draw')">✏ Dibujar</button>
+    <button class="btn" id="btext" onclick="setTool('text')">T Texto</button>
+    <button class="btn" id="berase" onclick="setTool('erase')">◻ Borrar</button>
+    <button class="btn" onclick="undo()">↩ Deshacer</button>
+    <button class="btn" onclick="clearAll()">✕ Limpiar</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="canvas-wrapper" id="wrap">
+    <img id="photo-bg" alt="Superficie" crossorigin="anonymous">
+    <canvas id="cg"></canvas>
+    <canvas id="ch"></canvas>
+    <input type="text" id="text-inp" placeholder="Escribí...">
+  </div>
+
+  <div class="controls">
+    <div class="ctrl">
+      <label>Grosor</label>
+      <input type="range" id="sz" min="1" max="28" value="5" oninput="document.getElementById('szv').textContent=this.value">
+      <span class="val" id="szv">5</span>
+    </div>
+    <div class="ctrl">
+      <label>Profundidad</label>
+      <input type="range" id="dp" min="2" max="10" value="7">
+    </div>
+    <div class="ctrl" id="font-ctrl">
+      <label>Tamaño texto</label>
+      <input type="range" id="fsz" min="18" max="130" value="52" oninput="document.getElementById('fszv').textContent=this.value">
+      <span class="val" id="fszv">52</span>
+    </div>
+  </div>
+</div>
+
+<div class="photo-strip" id="strip"></div>
+<div class="tip" id="tip">Clic en la superficie para empezar a grabar</div>
+
+<script>
+const MATS=[
+  {name:"Granito", url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80&fit=crop&crop=center"},
+  {name:"Madera",  url:"https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=900&q=80&fit=crop&crop=center"},
+  {name:"Mármol",  url:"https://images.unsplash.com/photo-1557804506-669a67965ba0?w=900&q=80&fit=crop&crop=center"},
+  {name:"Metal",   url:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=900&q=80&fit=crop&crop=center"},
+  {name:"Arena",   url:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=900&q=80&fit=crop&crop=center"},
+  {name:"Cuero",   url:"https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900&q=80&fit=crop&crop=center"},
+];
+
+let tool='draw',isDrawing=false,lx=0,ly=0,history=[],tPos={x:0,y:0},curMat=0;
+const photo=document.getElementById('photo-bg');
+const cg=document.getElementById('cg'), ch=document.getElementById('ch');
+const gc=cg.getContext('2d'), hc=ch.getContext('2d');
+const tinp=document.getElementById('text-inp');
+const wrap=document.getElementById('wrap');
+const szSlider=document.getElementById('sz');
+const dpSlider=document.getElementById('dp');
+const fszSlider=document.getElementById('fsz');
+
+// Build strip
+const strip=document.getElementById('strip');
+MATS.forEach((m,i)=>{
+  const div=document.createElement('div'); div.className='mat';
+  const img=document.createElement('img');
+  img.src=m.url; img.className=i===0?'active':'';
+  img.crossOrigin='anonymous';
+  img.onclick=()=>loadMat(i);
+  img.onerror=()=>{img.style.background=fallbackColor(i)};
+  const lbl=document.createElement('div'); lbl.className='mat-name'; lbl.textContent=m.name;
+  div.appendChild(img); div.appendChild(lbl); strip.appendChild(div);
+});
+
+function fallbackColor(i){return['#7a7875','#7a5c30','#b8b4b0','#8a9ca8','#c4ae78','#5c3d2a'][i]||'#666'}
+
+function loadMat(idx){
+  curMat=idx;
+  photo.src=MATS[idx].url;
+  photo.onload=()=>resizeC();
+  photo.onerror=()=>{
+    photo.style.minHeight='450px';
+    photo.style.background=fallbackColor(idx);
+    resizeC();
+  };
+  document.querySelectorAll('.mat img').forEach((img,i)=>img.classList.toggle('active',i===idx));
+  clearAll(true);
+}
+
+function resizeC(){
+  const w=photo.naturalWidth||photo.clientWidth||820;
+  const h=photo.naturalHeight||photo.clientHeight||540;
+  cg.width=w; cg.height=h;
+  ch.width=w; ch.height=h;
+  history=[];
+}
+
+loadMat(0);
+
+function depth(){return dpSlider.value/10}
+function sz(){return parseInt(szSlider.value)}
+function fsz(){return parseInt(fszSlider.value)}
+
+function pos(e){
+  const r=cg.getBoundingClientRect();
+  const sx=cg.width/r.width, sy=cg.height/r.height;
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx-r.left)*sx, y:(cy-r.top)*sy};
+}
+
+function saveHist(){
+  const g=gc.getImageData(0,0,cg.width,cg.height);
+  const h=hc.getImageData(0,0,ch.width,ch.height);
+  history.push({g,h});
+  if(history.length>25)history.shift();
+}
+
+function undo(){
+  if(!history.length)return;
+  const s=history.pop();
+  gc.putImageData(s.g,0,0);
+  hc.putImageData(s.h,0,0);
+}
+
+function clearAll(silent){
+  if(!silent)saveHist();
+  gc.clearRect(0,0,cg.width,cg.height);
+  hc.clearRect(0,0,ch.width,ch.height);
+}
+
+function engraveLine(x1,y1,x2,y2){
+  const d=depth(), s=sz(), off=Math.max(1.2, s*.22);
+  gc.beginPath(); gc.moveTo(x1,y1); gc.lineTo(x2,y2);
+  gc.strokeStyle=`rgba(0,0,0,${d})`; gc.lineWidth=s;
+  gc.lineCap='round'; gc.lineJoin='round'; gc.stroke();
+  hc.beginPath(); hc.moveTo(x1-off,y1-off); hc.lineTo(x2-off,y2-off);
+  hc.strokeStyle=`rgba(255,255,255,${d*.48})`; hc.lineWidth=s*.6;
+  hc.lineCap='round'; hc.lineJoin='round'; hc.stroke();
+}
+
+function engraveText(txt,x,y){
+  const d=depth(), f=fsz(), off=Math.max(1, f*.028);
+  const font=`bold ${f}px 'Cinzel',Georgia,serif`;
+  gc.font=font; gc.textBaseline='top';
+  gc.fillStyle=`rgba(0,0,0,${d})`; gc.fillText(txt,x,y);
+  hc.font=font; hc.textBaseline='top';
+  hc.fillStyle=`rgba(255,255,255,${d*.42})`; hc.fillText(txt,x-off,y-off);
+}
+
+function eraseAt(x,y){
+  const r=sz()*3.5;
+  gc.clearRect(x-r/2,y-r/2,r,r);
+  hc.clearRect(x-r/2,y-r/2,r,r);
+}
+
+// Events
+function start(e){
+  e.preventDefault();
+  if(tool==='text'){placeText(e);return}
+  saveHist();
+  isDrawing=true;
+  const p=pos(e); lx=p.x; ly=p.y;
+  if(tool==='erase') eraseAt(p.x,p.y);
+  else engraveLine(p.x,p.y,p.x,p.y);
+}
+function move(e){
+  e.preventDefault();
+  if(!isDrawing)return;
+  const p=pos(e);
+  if(tool==='erase') eraseAt(p.x,p.y);
+  else engraveLine(lx,ly,p.x,p.y);
+  lx=p.x; ly=p.y;
+}
+function stop(){isDrawing=false}
+
+wrap.addEventListener('mousedown',start);
+wrap.addEventListener('mousemove',move);
+wrap.addEventListener('mouseup',stop);
+wrap.addEventListener('mouseleave',stop);
+wrap.addEventListener('touchstart',start,{passive:false});
+wrap.addEventListener('touchmove',move,{passive:false});
+wrap.addEventListener('touchend',stop);
+
+function placeText(e){
+  const r=cg.getBoundingClientRect();
+  const sx=cg.width/r.width, sy=cg.height/r.height;
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  tPos.x=(cx-r.left)*sx; tPos.y=(cy-r.top)*sy;
+  const vf=fsz()*(r.height/cg.height);
+  tinp.style.display='block';
+  tinp.style.left=(cx-r.left)+'px';
+  tinp.style.top=(cy-r.top-vf*.1)+'px';
+  tinp.style.fontSize=vf+'px';
+  tinp.value=''; tinp.focus();
+}
+
+tinp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){commitText()}
+  else if(e.key==='Escape'){tinp.style.display='none';tinp.value=''}
+});
+tinp.addEventListener('blur',commitText);
+
+function commitText(){
+  const t=tinp.value.trim();
+  if(t){saveHist();engraveText(t,tPos.x,tPos.y)}
+  tinp.style.display='none'; tinp.value='';
+}
+
+function setTool(t){
+  tool=t;
+  ['draw','text','erase'].forEach(n=>{
+    document.getElementById('b'+n).classList.toggle('active',n===t);
+  });
+  document.getElementById('font-ctrl').style.display=t==='text'?'flex':'none';
+  wrap.style.cursor=t==='erase'?'cell':t==='text'?'text':'crosshair';
+  const tips={draw:'Mantenés presionado y arrastrás para grabar',text:'Clic en la superficie para escribir, Enter para confirmar',erase:'Arrastrá para borrar partes del grabado'};
+  document.getElementById('tip').textContent=tips[t];
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo()}
+});
+</script>
+</body>
+</html>
