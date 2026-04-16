@@ -9,8 +9,30 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{overflow-x:hidden;width:100%}
 body{background:#060606;color:#e8e0d0;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;width:100%;position:relative}
-header{padding:11px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.1);background:#000;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
-.logo{font-size:14px;font-weight:500;letter-spacing:.28em;color:#c9a84c;text-transform:uppercase}
+header{
+  padding:11px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid rgba(201,168,76,.1);
+  background:#000;
+  flex-wrap:wrap;
+  gap:8px;
+  position:sticky;
+  top:0;
+  z-index:100;
+  position:relative;
+}
+
+.logo{
+  font-size:14px;
+  font-weight:500;
+  letter-spacing:.28em;
+  color:#c9a84c;
+  text-transform:uppercase;
+  position:absolute;
+  left:18px;
+}
 .toolbar{display:flex;gap:5px;flex-wrap:wrap}
 .btn{background:#000;border:1px solid rgba(255,255,255,.1);color:#a09080;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap}
 .btn:hover{border-color:rgba(201,168,76,.4);color:#d4c09a}
