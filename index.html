@@ -10,39 +10,32 @@
 html{overflow-x:hidden;width:100%}
 body{background:#060606;color:#e8e0d0;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;width:100%;position:relative}
 header{
-  padding:11px 18px;
+  padding:12px 18px;
   display:flex;
-  align-items:center;
+  flex-direction:column;   /* 👈 clave */
+  align-items:center;      /* 👈 centra todo */
   justify-content:center;
+  gap:10px;
+
   border-bottom:1px solid rgba(201,168,76,.1);
   background:#000;
+
   position:sticky;
   top:0;
   z-index:100;
 }
 
-/* contenedor del logo */
+/* logo centrado */
 .logo{
-  position:absolute;
-  left:18px;
   display:flex;
-  flex-direction:column;
-  align-items:flex-start;
+  justify-content:center;
+  align-items:center;
 }
 
-/* imagen del logo */
+/* imagen logo */
 .logo img{
-  height:100px;
+  height:32px;
   object-fit:contain;
-  margin-bottom:2px;
-}
-
-/* texto */
-.logo span{
-  font-size:10px;
-  letter-spacing:.25em;
-  color:#c9a84c;
-  text-transform:uppercase;
 }
 
 /* toolbar centrada */
@@ -52,7 +45,7 @@ header{
   flex-wrap:wrap;
   justify-content:center;
 }
-  .btn{background:#000;border:1px solid rgba(255,255,255,.1);color:#a09080;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap}
+.btn{background:#000;border:1px solid rgba(255,255,255,.1);color:#a09080;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap}
 .btn:hover{border-color:rgba(201,168,76,.4);color:#d4c09a}
 .btn.active{background:rgba(201,168,76,.14);border-color:#c9a84c;color:#c9a84c}
 .main{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px 16px 8px;gap:12px}
